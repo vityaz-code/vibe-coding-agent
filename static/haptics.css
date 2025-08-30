@@ -1,0 +1,14 @@
+/* Простая стилизация для тактильных эффектов кнопок */
+.btn {
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.btn:active {
+    transform: scale(0.97);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) inset;
+}
+
+.gradient-btn {
+    cursor: pointer;
+    user-select: none;
+}
