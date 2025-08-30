@@ -77,16 +77,14 @@ def main():
             if kind == "plan":
                 try:
                     plan = extract_json_block(answer)
-                    payload = {"kind": "plan", "json": plan}
-                    submit(task["id"], True, payload=payload)
+                    submit(task["id"], True, payload={"kind":"plan","json":plan})
                     log("Plan submitted.")
                 except Exception as e:
                     submit(task["id"], False, error=f"plan parse error: {e}")
             elif kind == "build":
                 try:
                     manifest = extract_json_block(answer)
-                    payload = {"kind": "build", "manifest": manifest}
-                    submit(task["id"], True, payload=payload)
+                    submit(task["id"], True, payload={"kind":"build","manifest":manifest})
                     log("Build submitted.")
                 except Exception as e:
                     submit(task["id"], False, error=f"build parse error: {e}")
