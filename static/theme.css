@@ -1,0 +1,37 @@
+/* Цветовая тема чёрно-синяя с фиолетовыми переливами */
+body.gradient-frame {
+    background: linear-gradient(135deg, #0d0d0d 0%, #1a1a2e 50%, #4b0082 100%);
+    color: #f0f0f0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.gradient-card {
+    background: linear-gradient(145deg, rgba(30,30,60,0.9), rgba(60,0,80,0.9));
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+}
+
+.accent-text {
+    color: #ff80ff;
+}
+
+.btn.gradient-btn {
+    background: linear-gradient(90deg, #4b0082, #8a2be2);
+    border: none;
+    color: #fff;
+    font-weight: 600;
+}
+
+.btn.gradient-btn:hover {
+    background: linear-gradient(90deg, #6a0dad, #9b30ff);
+}
+
+pre {
+    background-color: rgba(0,0,0,0.3);
+    border-radius: 6px;
+    padding: 10px;
+    font-size: 0.9rem;
+    overflow-x: auto;
+}
