@@ -1,4 +1,3 @@
-# ---------- Dockerfile (Полный функционал, исправлен Build/Subprocess) ----------
 FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -7,7 +6,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# -------- System dependencies --------
+# Системные зависимости
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates curl wget unzip xz-utils gnupg git npm \
     xvfb xdg-utils \
@@ -19,28 +18,23 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ENV CHROME_BIN=/usr/bin/chromium \
     CHROMEDRIVER_BIN=/usr/bin/chromedriver
 
-# -------- Python dependencies --------
+# Python dependencies
 COPY requirements.txt .
-
-# Обновляем pip и setuptools перед установкой всех пакетов
 RUN pip install --upgrade pip setuptools wheel \
-    && pip install --no-cache-dir -r requirements.txt \
-    && pip install --no-cache-dir awscli awsebcli==3.20.1
+    && pip install --no-cache-dir -r requirements.txt
 
-# -------- Node-based CLIs --------
+# Node-based CLIs
 RUN npm i -g @railway/cli \
     && npm cache clean --force
 
-# -------- Flyctl (через официальный скрипт) --------
+# Flyctl
 RUN curl -L https://fly.io/install.sh | sh \
     && mv /root/.fly/bin/flyctl /usr/local/bin/flyctl \
     && chmod +x /usr/local/bin/flyctl
 
-# -------- Копирование приложения --------
+# Копируем код приложения
 COPY . .
 
-# Порт Render
 EXPOSE 8080
 
-# Gunicorn для запуска Flask
 CMD gunicorn -w 1 -k gthread --threads 4 -b 0.0.0.0:$PORT app:app --timeout 120
