@@ -1,4 +1,4 @@
-# ---------- Dockerfile (Полный функционал: Chromium + AWS CLI + Flyctl + Railway CLI) ----------
+# ---------- Dockerfile (Полный функционал, исправлен Build/Subprocess) ----------
 FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -21,12 +21,13 @@ ENV CHROME_BIN=/usr/bin/chromium \
 
 # -------- Python dependencies --------
 COPY requirements.txt .
-# requests ограничиваем до <=2.26, чтобы не конфликтовало с awsebcli
-RUN pip install --no-cache-dir -r requirements.txt \
+
+# Обновляем pip и setuptools перед установкой всех пакетов
+RUN pip install --upgrade pip setuptools wheel \
+    && pip install --no-cache-dir -r requirements.txt \
     && pip install --no-cache-dir awscli awsebcli==3.20.1
 
 # -------- Node-based CLIs --------
-# Railway CLI (через npm)
 RUN npm i -g @railway/cli \
     && npm cache clean --force
 
