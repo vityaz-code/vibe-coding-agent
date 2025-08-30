@@ -1,4 +1,15 @@
+# Работа с HTTP и API сервера
 requests==2.32.5
+
+# Автоматизация GUI на Windows (для ChatGPT Desktop)
 pyautogui==0.9.54
+
+# Буфер обмена для копирования/вставки текста
 pyperclip==1.9.0
+
+# Pillow для скриншотов и GUI
 pillow==10.4.0
+
+# Дополнительно (системные зависимости, если нужны для pyautogui)
+pygetwindow==0.0.9
+pymsgbox==1.0.10
