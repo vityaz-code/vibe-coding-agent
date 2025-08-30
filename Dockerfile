@@ -1,10 +1,13 @@
-# ---------- Full tools: Chromium + EB CLI + AWS CLI + Flyctl + Railway ----------
+# ---------- Dockerfile (Полный функционал: Chromium + AWS CLI + Flyctl + Railway CLI) ----------
 FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    DEBIAN_FRONTEND=noninteractive
 
-# -------- System deps --------
+WORKDIR /app
+
+# -------- System dependencies --------
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates curl wget unzip xz-utils gnupg git npm \
     xvfb xdg-utils \
@@ -13,28 +16,30 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     chromium chromium-driver \
  && rm -rf /var/lib/apt/lists/*
 
-# Пути для Selenium/Chrome
 ENV CHROME_BIN=/usr/bin/chromium \
     CHROMEDRIVER_BIN=/usr/bin/chromedriver
 
-WORKDIR /app
-
-# -------- Python deps --------
+# -------- Python dependencies --------
 COPY requirements.txt .
+# requests ограничиваем до <=2.26, чтобы не конфликтовало с awsebcli
 RUN pip install --no-cache-dir -r requirements.txt \
- && pip install --no-cache-dir awsebcli awscli
+    && pip install --no-cache-dir awscli awsebcli==3.20.1
 
 # -------- Node-based CLIs --------
+# Railway CLI (через npm)
 RUN npm i -g @railway/cli \
- && npm cache clean --force
+    && npm cache clean --force
 
-# -------- Flyctl (single binary) --------
+# -------- Flyctl (через официальный скрипт) --------
 RUN curl -L https://fly.io/install.sh | sh \
- && mv /root/.fly/bin/flyctl /usr/local/bin/flyctl \
- && chmod +x /usr/local/bin/flyctl
+    && mv /root/.fly/bin/flyctl /usr/local/bin/flyctl \
+    && chmod +x /usr/local/bin/flyctl
 
-# -------- App code --------
+# -------- Копирование приложения --------
 COPY . .
 
+# Порт Render
 EXPOSE 8080
+
+# Gunicorn для запуска Flask
 CMD gunicorn -w 1 -k gthread --threads 4 -b 0.0.0.0:$PORT app:app --timeout 120
