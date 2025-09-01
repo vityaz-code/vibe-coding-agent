@@ -1,4 +1,4 @@
-# ---------- Полный Dockerfile с исправленными зависимостями ----------
+# ---------- Full tools: Chromium + EB CLI + AWS CLI + Flyctl + Railway + Render ----------
 FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -7,7 +7,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# -------- Системные зависимости --------
+# -------- System dependencies --------
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates curl wget unzip xz-utils gnupg git npm \
     xvfb xdg-utils \
@@ -19,8 +19,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ENV CHROME_BIN=/usr/bin/chromium \
     CHROMEDRIVER_BIN=/usr/bin/chromedriver
 
-# -------- Python зависимости --------
+# -------- Python deps --------
 COPY requirements.txt .
+
+# Обновляем pip/setuptools/wheel для стабильной сборки awsebcli
 RUN pip install --upgrade pip setuptools wheel \
     && pip install --no-cache-dir -r requirements.txt
 
@@ -28,15 +30,16 @@ RUN pip install --upgrade pip setuptools wheel \
 RUN npm i -g @railway/cli \
     && npm cache clean --force
 
-# -------- Flyctl --------
+# -------- Flyctl (single binary) --------
 RUN curl -L https://fly.io/install.sh | sh \
     && mv /root/.fly/bin/flyctl /usr/local/bin/flyctl \
     && chmod +x /usr/local/bin/flyctl
 
-# -------- Копирование кода приложения --------
+# -------- App code --------
 COPY . .
 
+# Render подставляет переменную PORT. Слушаем именно её.
 EXPOSE 8080
 
-# -------- Запуск Flask через Gunicorn --------
+# Лёгкая конфигурация gunicorn для Free-плана
 CMD gunicorn -w 1 -k gthread --threads 4 -b 0.0.0.0:$PORT app:app --timeout 120
