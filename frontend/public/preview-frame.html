@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lite Visual Composer - Sandbox Live Preview</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #0e1621;
+      color: #ffffff;
+      margin: 0;
+      padding: 15px;
+      font-size: 14px;
+    }
+    .preview-header {
+      border-bottom: 1px solid #243547;
+      padding-bottom: 10px;
+      margin-bottom: 15px;
+    }
+    .preview-header h3 {
+      margin: 0;
+      color: #2481cc;
+      font-size: 16px;
+    }
+    .card {
+      background: #17212b;
+      border: 1px solid #243547;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+    }
+    .card-title {
+      font-weight: bold;
+      color: #2481cc;
+      font-size: 13px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .tag {
+      background: #202b36;
+      border: 1px solid #243547;
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 10px;
+      color: #708499;
+    }
+    .card-desc {
+      font-size: 11px;
+      color: #708499;
+      margin: 6px 0;
+    }
+    .btn {
+      background: #2481cc;
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: bold;
+      transition: background 0.2s;
+    }
+    .btn:hover {
+      background: #2f94e2;
+    }
+    .no-modules {
+      text-align: center;
+      color: #708499;
+      padding: 30px 10px;
+      border: 1px dashed #243547;
+      border-radius: 8px;
+    }
+    .scheduler-box {
+      margin-top: 10px;
+      border-top: 1px solid #243547;
+      padding-top: 10px;
+    }
+    .slots {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin: 8px 0;
+    }
+    .slot-btn {
+      background: #202b36;
+      border: 1px solid #243547;
+      color: #fff;
+      padding: 4px;
+      border-radius: 4px;
+      font-size: 10px;
+      cursor: pointer;
+      text-align: center;
+    }
+    .slot-btn:hover {
+      background: #2481cc;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="preview-header">
+    <h3>🚀 Sandbox Booking Live Preview</h3>
+  </div>
+
+  <div id="preview-viewport">
+    <div style="text-align: center; color: #708499; padding: 20px;">
+      Loading compiled modules...
+    </div>
+  </div>
+
+  <script>
+    // Extract projectId and initData from parent window parameters
+    const params = new URLSearchParams(window.location.search);
+    const projectId = params.get('proj') || 'proj-1';
+    // Use development mock initData to read project specs from sandbox origins
+    const devInitData = 'mock_1111_owner';
+
+    async function loadPreview() {
+      const container = document.getElementById('preview-viewport');
+      try {
+        const response = await fetch('/api/projects/' + projectId, {
+          headers: {
+            'x-telegram-init-data': devInitData,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to retrieve project spec details. Code: ' + response.status);
+        }
+
+        const data = await response.json();
+        const spec = data.spec;
+
+        if (!spec || !spec.modules || spec.modules.length === 0) {
+          container.innerHTML = `
+            <div class="no-modules">
+              No certified modules added to your workspace yet.<br/>
+              Use the module catalog or request AI composer to build.
+            </div>
+          `;
+          return;
+        }
+
+        let html = '';
+        spec.modules.forEach(m => {
+          html += `
+            <div class="card">
+              <div class="card-title">
+                <span>${m.name}</span>
+                <span class="tag">${m.moduleId}</span>
+              </div>
+              <div class="card-desc">Status: <strong style="color: #10b981;">● ${m.status || 'ready'}</strong></div>
+          `;
+
+          if (m.moduleId === 'booking') {
+            const slotDuration = m.config?.slot_duration || '30min';
+            html += `
+              <div class="scheduler-box">
+                <div style="font-size: 11px; margin-bottom: 5px;"><strong>📅 Available Slots (${slotDuration}):</strong></div>
+                <div class="slots">
+                  <div class="slot-btn" onclick="alert('Slot 09:00 booked!')">09:00 AM</div>
+                  <div class="slot-btn" onclick="alert('Slot 10:30 booked!')">10:30 AM</div>
+                  <div class="slot-btn" onclick="alert('Slot 02:00 booked!')">02:00 PM</div>
+                </div>
+                <button class="btn" style="width: 100%; margin-top: 5px;" onclick="alert('Appointment Confirmed!')">Confirm Appointment</button>
+              </div>
+            `;
+          }
+
+          html += `</div>`;
+        });
+
+        container.innerHTML = html;
+      } catch (err) {
+        container.innerHTML = `
+          <div style="color: #ef4444; text-align: center; padding: 20px;">
+            ⚠️ Sandboxed Load Error: ${err.message}
+          </div>
+        `;
+      }
+    }
+
+    loadPreview();
+
+    // Listen to refresh postMessages from composer
+    window.addEventListener('message', (event) => {
+      if (event.data === 'refresh-preview') {
+        loadPreview();
+      }
+    });
+  </script>
+</body>
+</html>
